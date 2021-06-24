@@ -13,6 +13,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/login', function () {
+    return view('auth.login');
+});
+
+Route::middleware(['auth.ingco.storehub'])->group(function () {
+
+    Route::get('/', function () {
+        return "Logged In";
+    });
+
 });

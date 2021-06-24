@@ -1,0 +1,47 @@
+body {
+    font-family: "Roboto, sans-serif";
+}
+
+.emblem {
+    font-size: 0.9rem;
+    display: inline;
+    padding: .15rem .3rem;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25em;
+}
+
+.emblem-pointer {
+    cursor: pointer;
+}
+
+.emblem-default {
+    background-color: #777;
+}
+.emblem-default:hover {
+    background-color: #fff;
+    color: #777;
+}
+.emblem-success {
+    background-color: #5cb85c;
+}
+.emblem-success:hover {
+    background-color: #fff;
+    color: #5cb85c;
+}
+.emblem-danger {
+    background-color: #b85c5c;
+}
+.emblem-danger:hover {
+    background-color: #fff;
+    color:  #b85c5c;
+}
+.emblem-warning {
+    background-color: #b8a941;
+}
+.emblem-warning:hover {
+    background-color: #fff;
+    color:  #b8a941;
+}
