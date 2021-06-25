@@ -7,6 +7,12 @@ use Illuminate\Http\Response;
 
 class UtilityController extends Controller
 {
+
+    public function utility()
+    {
+        return view('utility.index');
+    }
+
     public function sync()
     {
         if (request()->wantsJson()) {
@@ -20,7 +26,5 @@ class UtilityController extends Controller
                 'message' => Response::$statusTexts[Response::HTTP_OK]
             ]);
         }
-
-        return view('utility.sync.index');
     }
 }

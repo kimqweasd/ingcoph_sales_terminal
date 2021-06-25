@@ -1,5 +1,5 @@
 @extends('master')
 
 @section('content')
-    <sync-component></sync-component>
+    <utility-component></utility-component>
 @endsection

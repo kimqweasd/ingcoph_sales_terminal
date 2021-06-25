@@ -24,7 +24,7 @@
                                 </div>
                                 <div>
                                     <v-btn
-                                        v-on:click="syncModule(masterDataModule.slug, masterDataModule.service, masterDataModule.single, index)"
+                                        v-on:click="syncModule(masterDataModule.slug, masterDataModule.serviceUrl, masterDataModule.single, index)"
                                         :loading="masterDataModule.processing"
                                         :disabled="masterDataModule.disabled"
                                         tile small color="primary">Sync</v-btn>
@@ -34,13 +34,13 @@
                     </v-card-text>
 
                     <v-card-actions class="d-flex justify-end">
-                        <v-btn v-if="!loading.state && !syncingAnyModule" small v-on:click="sync.dialog = false">Cancel</v-btn>
-                        <v-btn :loading="loading.state || syncingAnyModule" small v-on:click="syncModule('*')">Sync All</v-btn>
+                        <v-btn v-if="!loading.state && !syncingAnyModule" small v-on:click="sync.dialog = false">CLOSE</v-btn>
+                        <v-btn :loading="loading.state || syncingAnyModule" small v-on:click="syncModule('*', null)">SYNC ALL</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-dialog>
 
-            <v-card tile outlined elevation="" width="450" class="my-auto">
+            <v-card tile outlined width="450" class="my-auto">
                 <v-progress-linear
                     v-if="loading.state"
                     indeterminate
@@ -50,21 +50,19 @@
                     <v-card-title v-if="user.loaded">{{`Hello ${user.name}`}}</v-card-title>
                 </v-row>
                 <v-card-text>
-                    <div class="col-sm-12 col-md-12">
-                        <div v-if="store.loaded">
-                            <div v-text="store.name"></div>
-                            <div v-text="store.address"></div>
-                        </div>
+                    <div v-if="store.loaded">
+                        <div v-text="store.name"></div>
+                        <div v-text="store.address"></div>
                     </div>
-                    <div class="col-sm-12 col-md-12">
-                        <div v-for="error in errors" class="red--text" v-bind:key="error" v-text="error"></div>
-                        <div v-for="message in messages" class="blue--text" v-bind:key="message" v-text="message"></div>
-                    </div>
+                    <v-divider></v-divider>
+                    <div v-for="error in errors" class="red--text" v-bind:key="error" v-text="error"></div>
+                    <div v-for="message in messages" class="blue--text" v-bind:key="message" v-text="message"></div>
                 </v-card-text>
                 <v-card-actions class="d-flex justify-end">
-                    <v-btn v-if="!loading.state" v-on:click="logout()">LOGOUT</v-btn>
-                    <v-btn v-if="!loading.state" v-on:click="goToSalesTerminal()">SALES TERMINAL</v-btn>
-                    <v-btn :loading="loading.state" v-on:click="sync.dialog = true">SYNC MASTER DATA</v-btn>
+                    <div v-if="loggingOut" v-text="'Logging out... please wait...'"></div>
+                    <v-btn outlined text v-if="!loading.state && !loggingOut" v-on:click="logout()">LOGOUT</v-btn>
+                    <v-btn outlined text v-if="!loading.state && !loggingOut" v-on:click="goToSalesTerminal()">SALES TERMINAL</v-btn>
+                    <v-btn outlined text v-if="!loggingOut" :loading="loading.state" v-on:click="sync.dialog = true">SYNC MASTER DATA</v-btn>
                 </v-card-actions>
             </v-card>
         </v-container>
@@ -73,10 +71,11 @@
 
 <script>
 export default {
-    name: "Sync",
+    name: "Utility",
 
     data() {
         return {
+            loggingOut: false,
             loading: {
                 state: false,
             },
@@ -134,7 +133,7 @@ export default {
             {
                 slug: 'store',
                 single: true,
-                service: that.apiInterface[auth.api].storeInfo(),
+                serviceUrl: that.apiInterface[auth.api].storeInfo(),
                 processing: false,
                 list: {
                     title: 'Store Information',
@@ -145,7 +144,7 @@ export default {
             {
                 slug: 'items',
                 single: false,
-                service: null,
+                serviceUrl: null,
                 processing: false,
                 list: {
                     title: 'Items',
@@ -156,10 +155,22 @@ export default {
             {
                 slug: 'promos',
                 single: false,
+                serviceUrl: null,
                 processing: false,
                 list: {
                     title: 'Promos',
                     subTitle: 'Sync Store Promos'
+                },
+                disabled: true
+            },
+            {
+                slug: 'payment_methods',
+                single: false,
+                serviceUrl: null,
+                processing: false,
+                list: {
+                    title: 'Payment Methods',
+                    subTitle: 'Sync Store Payment Methods'
                 },
                 disabled: true
             }
@@ -167,8 +178,10 @@ export default {
     },
 
     methods: {
-        syncModule(module, service, single, index = null){
+        syncModule(module, serviceUrl, single, index = null){
             let that = this;
+
+            if (_.isEmpty(serviceUrl)) return false;
 
             if (index === null){
                 that.loading.state = true;
@@ -179,7 +192,7 @@ export default {
             // If module only has 1 row/record like [User, Store info data]
             if(single) {
 
-                service.then((response) => {
+                window[auth.api].get(serviceUrl).then((response) => {
 
                     switch (module) {
                         case 'user':
@@ -198,13 +211,13 @@ export default {
                         data: response.data[module]
                     }).then((response) => {
 
-                        console.log(response);
-
                         if (index === null){
                             that.loading.state = false;
                         } else {
                             that.masterDataModules[index].processing = false;
                         }
+
+                        that.sync.dialog = false;
 
                     }).catch((error) => { that.catchError(error, ['Sync Failed'], index);});
                 }).catch((error) => {that.catchError(error, ['Sync Failed'], index);});
@@ -216,6 +229,7 @@ export default {
         },
 
         logout(){
+            this.loggingOut = true;
             window.location = "logout";
         },
 

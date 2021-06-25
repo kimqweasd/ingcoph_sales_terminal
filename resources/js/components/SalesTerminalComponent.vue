@@ -290,7 +290,11 @@
                         <div>CLEAR ITEMS</div>
                     </v-col>
 
-                    <v-col v-for="n in 5" :key="'col-1-' + n" cols="12" sm="1" style="border-right: 1px solid silver;">
+                    <v-col @click="WindowLocation.replace('utility')" cols="12" sm="1" style="border-right: 1px solid #cbbc70; cursor: pointer;">
+                        <div>UTILITY</div>
+                    </v-col>
+
+                    <v-col v-for="n in 4" :key="'col-1-' + n" cols="12" sm="1" style="border-right: 1px solid silver;">
                         <div>SLOT</div>
                     </v-col>
 

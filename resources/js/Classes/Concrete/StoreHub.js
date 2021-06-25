@@ -18,14 +18,14 @@ export default class StoreHub extends Application{
     }
 
     account() {
-        return window[this.appName].get(`${this.libraryAddress}/me`);
+        return `${this.libraryAddress}/me`;
     }
 
     storeInfo() {
-        return window[this.appName].get(`${this.libraryAddress}/store`);
+        return `${this.libraryAddress}/store`;
     }
 
     items() {
-        return window[this.appName].get(`${this.libraryAddress}/items/getAll`);
+        return `${this.libraryAddress}/items`;
     }
 }

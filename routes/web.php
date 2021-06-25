@@ -21,7 +21,7 @@ Route::middleware(['auth.ingco.storehub'])->group(function () {
     Route::get('logout', [\App\Http\Controllers\Api\LoginController::class, 'logout']);
     Route::post('logout', [\App\Http\Controllers\Api\LoginController::class, 'logout']);
 
-    Route::get('sync', [\App\Http\Controllers\UtilityController::class, 'sync']);
+    Route::get('utility', [\App\Http\Controllers\UtilityController::class, 'utility']);
     Route::post('sync', [\App\Http\Controllers\UtilityController::class, 'sync']);
 
     Route::get('', function () {return view('sales.terminal.index');});

@@ -1,7 +1,7 @@
 <template>
     <v-app>
         <v-container class="d-flex justify-center" style="height: 100%;">
-            <v-card outlined width="450" class="my-auto">
+            <v-card tile outlined width="450" class="my-auto">
                 <v-progress-linear
                     v-if="loading.state"
                     indeterminate
@@ -15,7 +15,7 @@
                         <div class="col-sm-12 col-md-12">
                             <input v-model="form.password" autocomplete="off" :disabled="loading.state" type="password" class="form-control" placeholder="Password">
                         </div>
-                        <div class="col-sm-12 col-md-12">
+                        <div>
                             <div v-for="error in errors" class="red--text" v-bind:key="error" v-text="error"></div>
                             <div v-for="message in messages" class="blue--text" v-bind:key="message" v-text="message"></div>
                         </div>
@@ -93,7 +93,7 @@ export default {
             }).then((response) => {
                 that.messages = ['Please wait...'];
                 setTimeout(()=>{
-                    window.location.replace('sync');
+                    window.location.replace('utility');
                 }, 1500);
             }).catch((error) => {
                 that.errors = ['Login Failed'];
