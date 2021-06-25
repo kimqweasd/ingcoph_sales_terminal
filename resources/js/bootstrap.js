@@ -8,10 +8,10 @@ window._ = require('lodash');
 
 window.axios = require('axios');
 
-window.salesTerminal = axios.create();
-window.salesTerminal.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-window.salesTerminal.defaults.headers.common['Content-Type'] = 'application/json';
-window.salesTerminal.defaults.headers.common['Accept'] = 'application/json';
+window.salesTerminalAxios = axios.create();
+window.salesTerminalAxios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.salesTerminalAxios.defaults.headers.common['Content-Type'] = 'application/json';
+window.salesTerminalAxios.defaults.headers.common['Accept'] = 'application/json';
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
@@ -54,4 +54,9 @@ Object.keys(Object.assign({}, require("./api").default)).forEach((api) => {
     window[api].defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
     window[api].defaults.headers.common['Content-Type'] = 'application/json';
     window[api].defaults.headers.common['Accept'] = 'application/json';
+
+    if(api === auth.api){
+        window[api].defaults.headers.common['Authorization'] = `Bearer ${auth.access_token}`;
+    }
 });
+

@@ -7,6 +7,8 @@ use App\Providers\RouteServiceProvider;
 use App\Traits\SessionHandler;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Response;
+use App\Models\Store;
+use App\Models\User;
 
 class LoginController extends Controller
 {
@@ -34,7 +36,17 @@ class LoginController extends Controller
         Session::forget('api');
         Session::forget('access_token');
 
+        User::query()->truncate();
+        Store::query()->truncate();
+
         \Log::debug(["Logout Session" => collect(Session::all())->only(['api', 'access_token'])->toArray()]);
+
+        if (request()->wantsJson()) {
+
+            return response()->json([
+                'message' => Response::$statusTexts[Response::HTTP_OK]
+            ]);
+        }
 
         return redirect(RouteServiceProvider::HOME);
     }

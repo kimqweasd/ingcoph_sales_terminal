@@ -37,7 +37,7 @@ export default {
     data() {
         return {
             loading: {
-                state: false,
+                state: true,
             },
             form: {
                 username: '',
@@ -49,8 +49,10 @@ export default {
     },
 
     mounted() {
-        if (this.shared.access_token) {
-            window.location.replace('logout');
+        if (this.auth.access_token) {
+            window.location.replace('/');
+        } else {
+            this.loading.state = false;
         }
     },
 
@@ -67,7 +69,7 @@ export default {
                 form: that.form
             }).then((response) => {
                 that.errors = [];
-                that.messages = ['Please wait... Preparing Sales Terminal.'];
+                that.messages = ['Please wait...'];
                 that.sessionAuthentication({
                     ...response.data,
                     api: api
@@ -82,12 +84,16 @@ export default {
         sessionAuthentication(data) {
             let that = this;
 
-            window.salesTerminal.post('login', {
+            that.errors = [];
+            that.messages = [];
+
+            window.salesTerminalAxios.post('login', {
                 api: data.api,
                 access_token: data.access_token
-            }).then((response)=>{
+            }).then((response) => {
+                that.messages = ['Please wait...'];
                 setTimeout(()=>{
-                    window.location.replace('/');
+                    window.location.replace('sync');
                 }, 1500);
             }).catch((error) => {
                 that.errors = ['Login Failed'];

@@ -13,15 +13,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/login', [\App\Http\Controllers\Api\LoginController::class, 'index']);
-Route::post('/login', [\App\Http\Controllers\Api\LoginController::class, 'index']);
+Route::get('login', [\App\Http\Controllers\Api\LoginController::class, 'index']);
+Route::post('login', [\App\Http\Controllers\Api\LoginController::class, 'index']);
 
 Route::middleware(['auth.ingco.storehub'])->group(function () {
 
-    Route::get('/logout', [\App\Http\Controllers\Api\LoginController::class, 'logout']);
+    Route::get('logout', [\App\Http\Controllers\Api\LoginController::class, 'logout']);
+    Route::post('logout', [\App\Http\Controllers\Api\LoginController::class, 'logout']);
 
-    Route::get('/', function () {
-        return view('sales.terminal.index');
-    });
+    Route::get('sync', [\App\Http\Controllers\UtilityController::class, 'sync']);
+    Route::post('sync', [\App\Http\Controllers\UtilityController::class, 'sync']);
 
+    Route::get('', function () {return view('sales.terminal.index');});
 });

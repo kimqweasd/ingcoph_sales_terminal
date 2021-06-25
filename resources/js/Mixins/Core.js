@@ -5,7 +5,7 @@ export default {
     data() {
         return {
             api: api,
-            shared: shared
+            auth: auth
         }
     },
 

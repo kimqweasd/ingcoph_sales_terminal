@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Traits\SessionHandler;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
@@ -30,10 +31,18 @@ class ViewServiceProvider extends ServiceProvider
     {
         View::composer(['*'], function($view){
             $view->with([
-                'api' => [
-                    'app' => $this->getIfExists('api'),
+                'auth' => [
+                    'api' => $this->getIfExists('api'),
                     'access_token' => $this->getIfExists('access_token'),
                     'refresh_token' => $this->getIfExists('refresh_token')
+                ],
+                'shared' => [
+                    'user' => User::first(),
+                    'salesTerminal' => [
+
+                        //Suggest Syncing
+                        'synced' => false
+                    ]
                 ]
             ]);
         });
