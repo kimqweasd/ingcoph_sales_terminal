@@ -20,9 +20,9 @@ class CreateStoresTable extends Migration
             $table->string('address')->nullable();
             $table->string('owner_name')->nullable();
             $table->string('tin')->nullable();
-            $table->string('phone_number');
-            $table->string('telephone_number');
-            $table->string('email');
+            $table->string('phone_number')->nullable();
+            $table->string('telephone_number')->nullable();
+            $table->string('email')->nullable();
             $table->timestamps();
         });
     }

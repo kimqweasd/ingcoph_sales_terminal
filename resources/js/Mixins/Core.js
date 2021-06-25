@@ -4,8 +4,7 @@ export default {
 
     data() {
         return {
-            api: api,
-            auth: auth
+            apiInterface: api
         }
     },
 

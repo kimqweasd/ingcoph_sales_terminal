@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Store;
 use App\Models\User;
 use App\Traits\SessionHandler;
 use Illuminate\Support\ServiceProvider;
@@ -38,6 +39,7 @@ class ViewServiceProvider extends ServiceProvider
                 ],
                 'shared' => [
                     'user' => User::first(),
+                    'store' => Store::first(),
                     'salesTerminal' => [
 
                         //Suggest Syncing

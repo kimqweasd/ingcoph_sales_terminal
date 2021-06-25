@@ -21,8 +21,8 @@ export default class StoreHub extends Application{
         return window[this.appName].get(`${this.libraryAddress}/me`);
     }
 
-    settings() {
-        return window[this.appName].get(`${this.libraryAddress}/settings`);
+    storeInfo() {
+        return window[this.appName].get(`${this.libraryAddress}/store`);
     }
 
     items() {

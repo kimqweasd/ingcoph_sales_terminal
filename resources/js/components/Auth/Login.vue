@@ -49,7 +49,7 @@ export default {
     },
 
     mounted() {
-        if (this.auth.access_token) {
+        if (auth.access_token) {
             window.location.replace('/');
         } else {
             this.loading.state = false;
@@ -57,22 +57,22 @@ export default {
     },
 
     methods: {
-        authenticateAt(api) {
+        authenticateAt(app) {
             let that = this;
 
-            if(_.isEmpty(api) || that.loading.state) return false;
+            if(_.isEmpty(app) || that.loading.state) return false;
 
             that.loading.state = true;
 
-            that.api[api].authenticate({
-                api: api,
+            that.apiInterface[app].authenticate({
+                api: app,
                 form: that.form
             }).then((response) => {
                 that.errors = [];
                 that.messages = ['Please wait...'];
                 that.sessionAuthentication({
                     ...response.data,
-                    api: api
+                    api: app
                 });
             }).catch((error) => {
                 that.errors = ['Login Failed'];

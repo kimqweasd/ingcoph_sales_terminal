@@ -23,7 +23,11 @@
                                     <div class="text-sm font-light" v-text="masterDataModule.list.subTitle"></div>
                                 </div>
                                 <div>
-                                    <v-btn :loading="masterDataModule.processing" :disabled="masterDataModule.disabled" v-on:click="syncModule(masterDataModule.slug)" tile small color="primary">Sync</v-btn>
+                                    <v-btn
+                                        v-on:click="syncModule(masterDataModule.slug, masterDataModule.service, masterDataModule.single, index)"
+                                        :loading="masterDataModule.processing"
+                                        :disabled="masterDataModule.disabled"
+                                        tile small color="primary">Sync</v-btn>
                                 </div>
                             </div>
                         </div>
@@ -43,15 +47,22 @@
                     color="green"
                 ></v-progress-linear>
                 <v-row class="m-0">
-                    <v-card-title v-if="user.name">{{`Hello ${user.name}`}}</v-card-title>
+                    <v-card-title v-if="user.loaded">{{`Hello ${user.name}`}}</v-card-title>
                 </v-row>
                 <v-card-text>
+                    <div class="col-sm-12 col-md-12">
+                        <div v-if="store.loaded">
+                            <div v-text="store.name"></div>
+                            <div v-text="store.address"></div>
+                        </div>
+                    </div>
                     <div class="col-sm-12 col-md-12">
                         <div v-for="error in errors" class="red--text" v-bind:key="error" v-text="error"></div>
                         <div v-for="message in messages" class="blue--text" v-bind:key="message" v-text="message"></div>
                     </div>
                 </v-card-text>
                 <v-card-actions class="d-flex justify-end">
+                    <v-btn v-if="!loading.state" v-on:click="logout()">LOGOUT</v-btn>
                     <v-btn v-if="!loading.state" v-on:click="goToSalesTerminal()">SALES TERMINAL</v-btn>
                     <v-btn :loading="loading.state" v-on:click="sync.dialog = true">SYNC MASTER DATA</v-btn>
                 </v-card-actions>
@@ -70,37 +81,15 @@ export default {
                 state: false,
             },
             user: {
-                name: null
+                loaded: false,
+                name: '',
             },
-            masterDataModules: [
-                {
-                    slug: 'store',
-                    processing: false,
-                    list: {
-                        title: 'Store Information',
-                        subTitle: 'Sync Store Details and Settings'
-                    },
-                    disabled: false
-                },
-                {
-                    slug: 'items',
-                    processing: false,
-                    list: {
-                        title: 'Items',
-                        subTitle: 'Sync Store Items and Inventory'
-                    },
-                    disabled: false
-                },
-                {
-                    slug: 'promos',
-                    processing: false,
-                    list: {
-                        title: 'Promos',
-                        subTitle: 'Sync Store Promos'
-                    },
-                    disabled: true
-                }
-            ],
+            store: {
+                loaded: false,
+                name: '',
+                address: '',
+            },
+            masterDataModules: [],
             message: {
                 value: '',
                 dialog: false
@@ -123,58 +112,123 @@ export default {
     mounted() {
         let that = this;
 
-        if (_.isEmpty(shared.user)) {
-            that.syncUser();
+        that.loading.state = true;
+
+        if (_.isEmpty(shared['user'])) {
+            that.syncModule('user', that.apiInterface[auth.api].account(), true);
         } else {
             that.user.name = shared.user.name;
+            that.user.loaded = true;
+
+            that.loading.state = false;
         }
+
+        if (!_.isEmpty(shared['store'])) {
+            that.store.name = shared.store.name;
+            that.store.address = shared.store.address;
+
+            that.store.loaded = true;
+        }
+
+        that.masterDataModules = [
+            {
+                slug: 'store',
+                single: true,
+                service: that.apiInterface[auth.api].storeInfo(),
+                processing: false,
+                list: {
+                    title: 'Store Information',
+                    subTitle: 'Sync Store Details and Settings'
+                },
+                disabled: false
+            },
+            {
+                slug: 'items',
+                single: false,
+                service: null,
+                processing: false,
+                list: {
+                    title: 'Items',
+                    subTitle: 'Sync Store Items and Inventory'
+                },
+                disabled: true
+            },
+            {
+                slug: 'promos',
+                single: false,
+                processing: false,
+                list: {
+                    title: 'Promos',
+                    subTitle: 'Sync Store Promos'
+                },
+                disabled: true
+            }
+        ];
     },
 
     methods: {
-        syncModule(args){
+        syncModule(module, service, single, index = null){
             let that = this;
 
-            that.loading.state = true;
+            if (index === null){
+                that.loading.state = true;
+            } else {
+                that.masterDataModules[index].processing = true;
+            }
 
-            window.salesTerminalAxios.post('sync', {
-                data: args.data,
-                module: args.module
-            }).then((response) => {
+            // If module only has 1 row/record like [User, Store info data]
+            if(single) {
 
-                console.log(response);
+                service.then((response) => {
 
-                that.loading.state = false;
+                    switch (module) {
+                        case 'user':
+                            that.user.name = response.data.user.name;
+                            that.user.loaded = true;
+                            break;
+                        case 'store':
+                            that.store.name = response.data.store.name;
+                            that.store.address = response.data.store.address;
+                            that.store.loaded = true;
+                            break;
+                    }
 
-            }).catch((error) => {
-                that.errors = ['Sync Failed'];
-                console.log(error.response.data);
-                that.loading.state = false;
-            });
-        },
+                    window.salesTerminalAxios.post('sync', {
+                        module: module,
+                        data: response.data[module]
+                    }).then((response) => {
 
-        syncUser(){
-            let that = this;
+                        console.log(response);
 
-            that.loading.state = true;
+                        if (index === null){
+                            that.loading.state = false;
+                        } else {
+                            that.masterDataModules[index].processing = false;
+                        }
 
-            that.api[that.auth.api].account().then((response) => {
-
-                that.user.name = response.data.user.name;
-
-                that.syncModule({
-                    module: 'user',
-                    data: response.data.user
-                })
-
-            }).catch((error) => {
-                that.errors = ['User Sync Failed'];
-                console.log(error.response.data);
-                that.loading.state = false;
-            });
+                    }).catch((error) => { that.catchError(error, ['Sync Failed'], index);});
+                }).catch((error) => {that.catchError(error, ['Sync Failed'], index);});
+            }
         },
 
         goToSalesTerminal(){
             window.location = "/";
+        },
+
+        logout(){
+            window.location = "logout";
+        },
+
+        catchError(error, messages, loadingIndex){
+            let that = this;
+
+            that.errors = messages;
+            console.log(error.response.data);
+            if (loadingIndex === null){
+                that.loading.state = false;
+            } else {
+                that.masterDataModules[loadingIndex].processing = false;
+            }
         }
     }
 }
