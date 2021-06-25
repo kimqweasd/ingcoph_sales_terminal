@@ -14,6 +14,7 @@ npm install
 npm run dev
 ```
 
+First, serve the storehub, then the sales terminal, each @ different host or port
 ```sh
 php artisan serve --host 127.0.0.1 --port 80
 or
