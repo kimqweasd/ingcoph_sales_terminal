@@ -8,10 +8,10 @@ window._ = require('lodash');
 
 window.axios = require('axios');
 
-window.salesTerminalAxios = axios.create();
-window.salesTerminalAxios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-window.salesTerminalAxios.defaults.headers.common['Content-Type'] = 'application/json';
-window.salesTerminalAxios.defaults.headers.common['Accept'] = 'application/json';
+window.salesTerminal = axios.create();
+window.salesTerminal.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.salesTerminal.defaults.headers.common['Content-Type'] = 'application/json';
+window.salesTerminal.defaults.headers.common['Accept'] = 'application/json';
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
@@ -34,11 +34,13 @@ import Vue from "vue";
 import Moment from 'moment';
 import Vuetify from 'vuetify';
 import '@mdi/font/css/materialdesignicons.css';
+import Core from "./Mixins/Core";
 
 window.Vue = Vue;
 window.Moment = Moment;
 window.Vuetify = Vuetify;
 
+window.Vue.mixin(Core);
 window.Vue.use(Vuetify);
 
 export default new Vuetify({
@@ -46,3 +48,10 @@ export default new Vuetify({
         iconfont: 'mdi'
     },
 })
+
+Object.keys(Object.assign({}, require("./api").default)).forEach((api) => {
+    window[api] = axios.create();
+    window[api].defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    window[api].defaults.headers.common['Content-Type'] = 'application/json';
+    window[api].defaults.headers.common['Accept'] = 'application/json';
+});

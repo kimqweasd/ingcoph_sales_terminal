@@ -17,7 +17,7 @@
         <script src="{{ asset('js/jquery.min.js') }}" defer></script>
         <script src="{{ asset('js/sweetalert.min.js') }}" defer></script>
         <script src="{{ asset('js/adminlte.min.js') }}" defer></script>
-        @javascript('api', $api)
+        @javascript('shared', $api)
     </head>
     <body  style="padding: 0; margin: 0; overflow: hidden !important;">
         <div id="app" style="background-color: white; height:100%; width:100%;">
