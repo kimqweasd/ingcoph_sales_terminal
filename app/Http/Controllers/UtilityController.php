@@ -17,6 +17,8 @@ class UtilityController extends Controller
     {
         if (request()->wantsJson()) {
 
+            \Log::debug(request()->all());
+
             $this->getMorphMapValue(request()->get('module'))::query()->truncate();
 
             $data = $this->getMorphMapValue(request()->get('module'))::create(request()->get('data'));

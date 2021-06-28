@@ -15,7 +15,7 @@
                         <div class="col-sm-12 col-md-12">
                             <input v-model="form.password" autocomplete="off" :disabled="loading.state" type="password" class="form-control" placeholder="Password">
                         </div>
-                        <div>
+                        <div style="padding-left: 12px;">
                             <div v-for="error in errors" class="red--text" v-bind:key="error" v-text="error"></div>
                             <div v-for="message in messages" class="blue--text" v-bind:key="message" v-text="message"></div>
                         </div>
