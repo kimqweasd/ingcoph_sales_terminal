@@ -42,15 +42,15 @@
 
                     <v-card-text style="max-height: 560px; padding: 5px; border:1px solid #e0e0e0;">
                         <div v-for="(masterDataModule, index) in masterDataModules.filter(module => module.independent === false)">
-                            <div class="d-flex ml-2" style="margin-bottom: 1px;">
+                            <!--<div class="d-flex" style="margin-bottom: 1px;">
                                 <v-progress-linear
                                     v-if="masterDataModule.processing"
                                     indeterminate
                                     color="blue"
                                 ></v-progress-linear>
                             </div>
-                            <div class="d-flex justify-space-between mb-5">
-                                <div class="ml-2">
+                            <div class="d-flex justify-space-between mb-3" style="border:1px solid #e0e0e0;">
+                                <div>
                                     <div class="text-md font-weight-bold" v-text="masterDataModule.list.title"></div>
                                     <div class="text-sm font-light" v-text="masterDataModule.list.subTitle"></div>
                                 </div>
@@ -61,7 +61,30 @@
                                         :disabled="masterDataModule.disabled"
                                         tile small color="primary">Sync</v-btn>
                                 </div>
+                            </div>-->
+
+                            <div class="d-flex" style="margin-bottom: 1px;">
+                                <v-progress-linear
+                                    v-if="masterDataModule.processing"
+                                    indeterminate
+                                    color="blue"
+                                ></v-progress-linear>
                             </div>
+                            <v-row no-gutters align="center" class="mb-3">
+                                <v-col cols="12" sm="7">
+                                    <div>
+                                        <div class="text-md font-weight-bold" v-text="masterDataModule.list.title"></div>
+                                        <div class="text-sm font-light overline" v-text="masterDataModule.list.subTitle"></div>
+                                    </div>
+                                </v-col>
+                                <v-col cols="12" sm="5">
+                                    <v-btn
+                                        v-on:click="initializeSync(masterDataModule.slug, masterDataModule.serviceUrl, masterDataModule.paginated, index)"
+                                        :loading="masterDataModule.processing"
+                                        :disabled="masterDataModule.disabled"
+                                        tile small color="primary">Sync</v-btn>
+                                </v-col>
+                            </v-row>
                         </div>
                     </v-card-text>
 
@@ -226,7 +249,7 @@ export default {
                 slug: 'payment_methods',
                 paginated: true,
                 serviceUrl: null,
-                processing: false,
+                processing: true,
                 list: {
                     title: 'Payment Methods',
                     subTitle: 'Sync Store Payment Methods'
