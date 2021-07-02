@@ -130,11 +130,11 @@
                                     tile small color="primary">{{`Sync ${masterDataModule.slug}`}}</v-btn>
 
                                 <v-btn v-on:click="sync.dialog = true"
-                                   :disabled="loading.state || loggingOut"
+                                   :disabled="loading.state || loggingOut || !store.loaded"
                                    tile outlined small text>SYNC MASTER DATA</v-btn>
 
                                 <v-btn v-on:click="goToSalesTerminal()"
-                                   :disabled="loading.state || loggingOut"
+                                   :disabled="loading.state || loggingOut || !store.loaded"
                                    tile outlined small text>SALES TERMINAL</v-btn>
                             </v-col>
                         </v-row>
@@ -292,21 +292,23 @@ export default {
                 await that.getFromApiService(module, serviceUrl, paginated, index).then((response) => {
                     data = response;
                 }).catch((error) => {
-                    that.catchError(error, ['Sync Failed'], index);
+                    that.catchError(error, ['Api Service Failed : Session Expired', 'Please Re-login your Session'], index);
                 });
 
-                await console.log("Response finish after 4 sec.");
+                await console.log("Response finish after 2 sec.");
 
-                switch (module) {
-                    case 'user':
-                        that.user.name = data.name;
-                        that.user.loaded = true;
-                        readyToSync = true;
-                        break;
-                    case 'store':
-                        that.storeSelection.data = data;
-                        that.storeSelection.dialog = true;
-                        break;
+                if (data) {
+                    switch (module) {
+                        case 'user':
+                            that.user.name = data.name;
+                            that.user.loaded = true;
+                            readyToSync = true;
+                            break;
+                        case 'store':
+                            that.storeSelection.data = data;
+                            that.storeSelection.dialog = true;
+                            break;
+                    }
                 }
 
                 if (!_.isEmpty(data) && readyToSync) {
@@ -348,7 +350,7 @@ export default {
                 that.sync.dialog = false;
 
             }).catch((error) => {
-                that.catchError(error, ['Sync Failed'], index);
+                that.catchError(error, ['Sales Terminal Service Failed'], index);
             });
         },
 
@@ -381,10 +383,12 @@ export default {
         },
 
         goToSalesTerminal(){
-            window.location = "/";
+            window.location = "/sales-terminal";
         },
 
         logout(){
+            this.errors = [];
+            this.messages = [];
             this.loggingOut = true;
             window.location = "logout";
         },
@@ -393,7 +397,19 @@ export default {
             let that = this;
 
             that.errors = messages;
-            console.log(error.response.data);
+
+            if (error.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                console.log(error.response.data.message);
+            } else if (error.request) {
+                // The request was made but no response was received
+                that.errors = ['Failed To Contact Server...'];
+            } else {
+                that.errors = ['Something Went Wrong... Please Contact Your Administrator...'];
+                console.log('Something Went Wrong...', error.message);
+            }
+
             if (loadingIndex === null){
                 that.loading.state = false;
             } else {

@@ -40,8 +40,8 @@ export default {
                 state: true,
             },
             form: {
-                username: '',
-                password: ''
+                username: 'storecashierab',
+                password: 'qweasdzxc'
             },
             errors: [],
             messages: []
@@ -75,8 +75,24 @@ export default {
                     api: app
                 });
             }).catch((error) => {
-                that.errors = ['Login Failed'];
-                console.log(error.response.data);
+                if (error.response) {
+                    // The request was made and the server responded with a status code
+                    // that falls out of the range of 2xx
+                    that.errors = ['Login Failed', 'Please Enter Valid Credentials'];
+                    console.log(error.response.data);
+                    console.log(error.response.status);
+                    console.log(error.response.headers);
+                } else if (error.request) {
+                    // The request was made but no response was received
+                    that.errors = ['Failed To Contact Server...'];
+                } else {
+                    that.errors = ['Something Went Wrong... Please Contact Your Administrator...'];
+                    console.log('Something Went Wrong...', error.message);
+                }
+
+
+
+
                 that.loading.state = false;
             });
         },
@@ -93,7 +109,7 @@ export default {
             }).then((response) => {
                 that.messages = ['Please wait...'];
                 setTimeout(()=>{
-                    window.location.replace('utility');
+                    window.location.replace('/');
                 }, 1500);
             }).catch((error) => {
                 that.errors = ['Login Failed'];
