@@ -6,13 +6,5 @@ export default {
         return {
             apiInterface: api
         }
-    },
-
-    mounted() {
-
-    },
-
-    computed: {
-
     }
 }

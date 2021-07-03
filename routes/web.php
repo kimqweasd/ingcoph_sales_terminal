@@ -24,5 +24,7 @@ Route::middleware(['auth.ingco.storehub'])->group(function () {
     Route::get('', [\App\Http\Controllers\UtilityController::class, 'utility']);
     Route::post('sync', [\App\Http\Controllers\UtilityController::class, 'sync']);
 
+    Route::get('items/getSelection' ,[\App\Http\Controllers\ItemController::class, 'getSelection']);
+
     Route::get('sales-terminal', function () {return view('sales.terminal.index');});
 });

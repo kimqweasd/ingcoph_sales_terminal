@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Item;
 use App\Providers\RouteServiceProvider;
 use App\Traits\SessionHandler;
 use Illuminate\Support\Facades\Session;
@@ -17,6 +18,9 @@ class LoginController extends Controller
     public function index()
     {
         if (request()->wantsJson()) {
+
+            User::query()->truncate();
+            Store::query()->truncate();
 
             $this->forgetAndPut('api', request()->input('api'));
             $this->forgetAndPut('access_token', request()->input('access_token'));
@@ -33,11 +37,13 @@ class LoginController extends Controller
 
     public function logout()
     {
+        //Session::flush();
         Session::forget('api');
         Session::forget('access_token');
 
         User::query()->truncate();
         Store::query()->truncate();
+        Item::query()->truncate();
 
         \Log::debug(["Logout Session" => collect(Session::all())->only(['api', 'access_token'])->toArray()]);
 

@@ -76,22 +76,13 @@ export default {
                 });
             }).catch((error) => {
                 if (error.response) {
-                    // The request was made and the server responded with a status code
-                    // that falls out of the range of 2xx
-                    that.errors = ['Login Failed', 'Please Enter Valid Credentials'];
-                    console.log(error.response.data);
-                    console.log(error.response.status);
-                    console.log(error.response.headers);
+                    that.errors = ['Login failed', 'Please enter valid credentials'];
                 } else if (error.request) {
-                    // The request was made but no response was received
-                    that.errors = ['Failed To Contact Server...'];
+                    that.errors = ['Failed to connect to store hub server...'];
                 } else {
-                    that.errors = ['Something Went Wrong... Please Contact Your Administrator...'];
-                    console.log('Something Went Wrong...', error.message);
+                    that.errors = ['Something went wrong... Please contact your administrator...'];
+                    console.log('Something went wrong...', error.message);
                 }
-
-
-
 
                 that.loading.state = false;
             });

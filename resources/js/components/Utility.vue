@@ -34,7 +34,7 @@
             </v-dialog>
 
             <!-- SYNC DIALOG -->
-            <v-dialog v-model="sync.dialog" scrollable persistent max-width="580px" style="">
+            <v-dialog v-model="sync.dialog" scrollable persistent max-width="780px" style="">
                 <v-card>
                     <v-row class="m-0">
                         <v-card-title v-text="sync.title"></v-card-title>
@@ -42,27 +42,6 @@
 
                     <v-card-text style="max-height: 560px; padding: 5px; border:1px solid #e0e0e0;">
                         <div v-for="(masterDataModule, index) in masterDataModules.filter(module => module.independent === false)">
-                            <!--<div class="d-flex" style="margin-bottom: 1px;">
-                                <v-progress-linear
-                                    v-if="masterDataModule.processing"
-                                    indeterminate
-                                    color="blue"
-                                ></v-progress-linear>
-                            </div>
-                            <div class="d-flex justify-space-between mb-3" style="border:1px solid #e0e0e0;">
-                                <div>
-                                    <div class="text-md font-weight-bold" v-text="masterDataModule.list.title"></div>
-                                    <div class="text-sm font-light" v-text="masterDataModule.list.subTitle"></div>
-                                </div>
-                                <div>
-                                    <v-btn
-                                        v-on:click="initializeSync(masterDataModule.slug, masterDataModule.serviceUrl, masterDataModule.paginated, index)"
-                                        :loading="masterDataModule.processing"
-                                        :disabled="masterDataModule.disabled"
-                                        tile small color="primary">Sync</v-btn>
-                                </div>
-                            </div>-->
-
                             <div class="d-flex" style="margin-bottom: 1px;">
                                 <v-progress-linear
                                     v-if="masterDataModule.processing"
@@ -71,26 +50,35 @@
                                 ></v-progress-linear>
                             </div>
                             <v-row no-gutters align="center" class="mb-3">
-                                <v-col cols="12" sm="7">
+                                <v-col cols="12" sm="6">
                                     <div>
                                         <div class="text-md font-weight-bold" v-text="masterDataModule.list.title"></div>
                                         <div class="text-sm font-light overline" v-text="masterDataModule.list.subTitle"></div>
                                     </div>
                                 </v-col>
-                                <v-col cols="12" sm="5">
-                                    <v-btn
-                                        v-on:click="initializeSync(masterDataModule.slug, masterDataModule.serviceUrl, masterDataModule.paginated, index)"
-                                        :loading="masterDataModule.processing"
-                                        :disabled="masterDataModule.disabled"
-                                        tile small color="primary">Sync</v-btn>
+                                <v-col cols="12" sm="6">
+                                    <v-row no-gutters align="center">
+                                        <v-btn
+                                            v-on:click="initializeSync(masterDataModule.slug, masterDataModule.serviceUrl, masterDataModule.paginated, masterDataModules.indexOf(masterDataModule))"
+                                            :loading="masterDataModule.processing"
+                                            :disabled="masterDataModule.disabled"
+                                            tile small color="primary"><v-icon>mdi mdi-download</v-icon>&nbsp;Sync</v-btn>
+                                        <span>
+                                            <span class="ml-2 text-md font-weight-bold" v-text="`MASTER DATA : ${masterDataModule.count.saved} / ${masterDataModule.count.source}`"></span>
+                                        </span>
+                                    </v-row>
                                 </v-col>
                             </v-row>
+                        </div>
+                        <div>
+                            <div v-for="error in errors" class="red--text" v-bind:key="error" v-text="error"></div>
+                            <div v-for="message in messages" class="blue--text" v-bind:key="message" v-text="message"></div>
                         </div>
                     </v-card-text>
 
                     <v-card-actions class="d-flex justify-end">
-                        <v-btn v-if="!loading.state && !syncingAnyModule" small v-on:click="sync.dialog = false">CLOSE</v-btn>
-                        <v-btn :loading="loading.state || syncingAnyModule" small v-on:click="initializeSync('*', null)">SYNC ALL</v-btn>
+                        <v-btn v-if="!loading.state && !syncingAnyModule" small outlined tile text v-on:click="sync.dialog = false">CLOSE</v-btn>
+                        <v-btn :loading="loading.state || syncingAnyModule" small outlined tile text v-on:click="syncAllMasterData()">SYNC ALL</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-dialog>
@@ -130,17 +118,17 @@
                                     tile small color="primary">{{`Sync ${masterDataModule.slug}`}}</v-btn>
 
                                 <v-btn v-on:click="sync.dialog = true"
-                                   :disabled="loading.state || loggingOut || !store.loaded"
-                                   tile outlined small text>SYNC MASTER DATA</v-btn>
+                                       :disabled="loading.state || loggingOut || !store.loaded"
+                                       tile outlined small text>SYNC MASTER DATA</v-btn>
 
                                 <v-btn v-on:click="goToSalesTerminal()"
-                                   :disabled="loading.state || loggingOut || !store.loaded"
-                                   tile outlined small text>SALES TERMINAL</v-btn>
+                                       :disabled="loading.state || loggingOut || !store.loaded"
+                                       tile outlined small text>SALES TERMINAL</v-btn>
                             </v-col>
                         </v-row>
                     </div>
-                    <div v-for="error in errors" class="red--text" v-bind:key="error" v-text="error"></div>
-                    <div v-for="message in messages" class="blue--text" v-bind:key="message" v-text="message"></div>
+                    <div v-if="!sync.dialog" v-for="error in errors" class="red--text" v-bind:key="error" v-text="error"></div>
+                    <div v-if="!sync.dialog" v-for="message in messages" class="blue--text" v-bind:key="message" v-text="message"></div>
                 </v-card-text>
                 <v-card-actions class="d-flex justify-end">
                     <div v-if="loggingOut" v-text="'Logging out... please wait...'"></div>
@@ -167,6 +155,7 @@ export default {
             },
             store: {
                 loaded: false,
+                id: null,
                 name: '',
                 address: '',
             },
@@ -193,7 +182,8 @@ export default {
                 dialog: false,
             },
             errors: [],
-            messages: []
+            messages: [],
+            paginationDistribution: 20
         }
     },
 
@@ -224,14 +214,18 @@ export default {
             {
                 slug: 'items',
                 paginated: true,
-                serviceUrl: null,
+                serviceUrl: that.apiInterface[auth.api].items(),
                 processing: false,
                 list: {
                     title: 'Items',
-                    subTitle: 'Sync Store Items and Inventory'
+                    subTitle: 'Sync Store Items'
                 },
                 independent: false,
-                disabled: true
+                disabled: false,
+                count: {
+                    source: 0,
+                    saved: shared.items.count
+                }
             },
             {
                 slug: 'promos',
@@ -243,19 +237,27 @@ export default {
                     subTitle: 'Sync Store Promos'
                 },
                 independent: false,
-                disabled: true
+                disabled: true,
+                count: {
+                    source: 0,
+                    saved: 0
+                }
             },
             {
                 slug: 'payment_methods',
                 paginated: true,
                 serviceUrl: null,
-                processing: true,
+                processing: false,
                 list: {
                     title: 'Payment Methods',
                     subTitle: 'Sync Store Payment Methods'
                 },
                 independent: false,
-                disabled: true
+                disabled: true,
+                count: {
+                    source: 0,
+                    saved: 0
+                }
             }
         ];
 
@@ -270,7 +272,9 @@ export default {
 
         if (_.isEmpty(shared['store'])) {
             await that.initializeSync('store', that.apiInterface[auth.api].storeInfo(), false, null);
+            await console.log("Resolved store.");
         } else {
+            that.store.id = shared.store.id;
             that.store.name = shared.store.name;
             that.store.address = shared.store.address;
             that.store.loaded = true;
@@ -278,10 +282,87 @@ export default {
     },
 
     methods: {
+        async syncAllMasterData(){
+            let that = this;
+
+            if (_.isNull(that.store.id)) {
+                return false;
+            }
+
+            that.masterDataModules.filter(module => (module.independent === false && module.paginated && !_.isEmpty(module.serviceUrl))).forEach(module => {
+                let masterDataModulesIndex = that.masterDataModules.indexOf(module);
+                that.toggleLoading(masterDataModulesIndex, true);
+                that.iteratePagination(module.slug, module.serviceUrl, masterDataModulesIndex, {store_id :that.store.id, page: 1, perPage: that.paginationDistribution});
+            });
+        },
+
+        async iteratePagination(module, serviceUrl, index, pagination) {
+            let that = this;
+
+            that.errors = [];
+
+            if(_.isNull(serviceUrl)){
+                return false;
+            }
+
+            that.getFromApiService(module, serviceUrl, Object.assign({},{
+                store_id : pagination.store_id,
+                page: pagination.page,
+                per_page: pagination.perPage
+            })).then(async (response) => {
+                console.log([`${module} page ${pagination.page}`, response]);
+
+                that.masterDataModules[index].count.source = response.total;
+
+                console.log(`Syncing ${module} page ${pagination.page}`);
+
+                await new Promise((resolve, reject) => {
+                    // setTimeout(()=>{
+                    //     resolve();
+                    // },500);
+
+                    let data = response.data.reduce((collection, needle)=>{
+                        collection.push(Object.assign({},{
+                            id: needle.id,
+                            model: needle.item.model,
+                            name: needle.item.name,
+                            quantity: needle.quantity,
+                            srp: needle.store_price
+                        }));
+
+                        return collection;
+                    },[]);
+
+                    that.syncPaginated(module, {data: data, page: pagination.page}).then((response) => {
+                        that.masterDataModules[index].count.saved = response.data.data.count;
+                        console.log(`Synced ${module} page ${pagination.page}`);
+                        resolve();
+                    }).catch((error) => {
+                        that.catchError(error, ['Authentication failed : token expired', 'Please re-login your session'], index);
+                    });
+                });
+
+                console.log(`synced ${module} page ${pagination.page}`);
+
+                if (pagination.page !== response.last_page) {
+                    await that.iteratePagination(module, serviceUrl, index, Object.assign({}, {
+                        store_id: pagination.store_id,
+                        page: pagination.page + 1,
+                        perPage: pagination.perPage
+                    }))
+                } else {
+                    console.log(`finished iterating ${module}`);
+                    that.toggleLoading(index, false);
+                }
+            }).catch((error) => {
+                that.catchError(error, ['Authentication failed : token expired', 'Please re-login your session'], index);
+            });
+        },
+
         async initializeSync(module, serviceUrl, paginated, index = null){
             let that = this;
 
-            if (_.isEmpty(serviceUrl)) return false;
+            if (_.isNull(serviceUrl)) return false;
 
             that.toggleLoading(index, true);
 
@@ -292,10 +373,13 @@ export default {
                 await that.getFromApiService(module, serviceUrl, paginated, index).then((response) => {
                     data = response;
                 }).catch((error) => {
-                    that.catchError(error, ['Api Service Failed : Session Expired', 'Please Re-login your Session'], index);
+                    that.catchError(error, ['Authentication failed : token expired', 'Please re-login your session'], index);
                 });
 
-                await console.log("Response finish after 2 sec.");
+                if (!that.errors.length) {
+                    that.messages.push(`Request ${module} received`);
+                    console.log(`Request ${module} received`);
+                }
 
                 if (data) {
                     switch (module) {
@@ -311,22 +395,43 @@ export default {
                     }
                 }
 
-                if (!_.isEmpty(data) && readyToSync) {
+                if (!_.isNull(data) && readyToSync) {
                     await that.syncModule(module, data, index);
                 }
+            } else {
+                await that.iteratePagination(module, serviceUrl, index, {store_id :that.store.id, page: 1, perPage: that.paginationDistribution});
             }
         },
 
-        getFromApiService(module, serviceUrl, paginated, index){
+        getFromApiService(module, serviceUrl, params = {}){
             let that = this;
 
-            return new Promise((resolve, reject) => {
-                window[auth.api].get(serviceUrl).then((response) => {
-                    console.log("Delaying response of 2 sec.");
+            if (_.isEmpty(params)) {
+                that.messages.push(`Requesting ${module} from store hub server`);
+                console.log(`Requesting ${module} from store hub server`);
+            }
 
+            return new Promise((resolve, reject) => {
+                window[auth.api].get(serviceUrl, {
+                    params: params
+                }).then((response) => {
                     setTimeout(()=>{
                         resolve(response.data[module]);
-                    },2000);
+                    },(_.isEmpty(params) ? 2000 : 0));
+                }).catch((error) => {
+                    reject(error);
+                });
+            });
+        },
+
+        syncPaginated(module, payload){
+            return new Promise((resolve, reject) => {
+                window.salesTerminalAxios.post('sync', {
+                    module: module,
+                    data: payload.data,
+                    page: payload.page
+                }).then((response) => {
+                    resolve(response);
                 }).catch((error) => {
                     reject(error);
                 });
@@ -336,6 +441,7 @@ export default {
         async syncModule(module, data, index){
             let that = this;
 
+            that.messages.push(`Syncing ${module}`);
             await console.log(`Syncing ${module}.`);
 
             await window.salesTerminalAxios.post('sync', {
@@ -345,12 +451,13 @@ export default {
 
                 that.toggleLoading(index, false);
 
-                console.log(`Syncing ${module} Finished.`);
+                that.messages.push(`Synced ${module}`);
+                console.log(`Synced ${module}`);
 
                 that.sync.dialog = false;
 
             }).catch((error) => {
-                that.catchError(error, ['Sales Terminal Service Failed'], index);
+                that.catchError(error, ['Terminal service failed...'], index);
             });
         },
 
@@ -366,10 +473,18 @@ export default {
             let index = that.sync.dialog ? 0 : null;
 
             await that.syncModule('store', data, index);
+            that.store.id = data.id;
             that.store.name = data.name;
             that.store.address = data.address;
             that.store.loaded = true;
             await console.log("Resolved Store.");
+
+            //Start syncing master data, since store just got finished
+            await new Promise(resolve => {
+                that.sync.dialog = true;
+                that.syncAllMasterData();
+                resolve();
+            });
         },
 
         toggleLoading(index, state){
@@ -404,10 +519,10 @@ export default {
                 console.log(error.response.data.message);
             } else if (error.request) {
                 // The request was made but no response was received
-                that.errors = ['Failed To Contact Server...'];
+                that.errors = ['Failed to connect to store hub server...'];
             } else {
-                that.errors = ['Something Went Wrong... Please Contact Your Administrator...'];
-                console.log('Something Went Wrong...', error.message);
+                that.errors = ['Something went wrong... Please contact your administrator...'];
+                console.log('Something went wrong...', error.message);
             }
 
             if (loadingIndex === null){
@@ -416,10 +531,23 @@ export default {
                 that.masterDataModules[loadingIndex].processing = false;
             }
         }
+    },
+
+    watch:{
+        messages: {
+            handler() {
+                let that = this;
+
+                setTimeout(()=>{
+                    if (that.messages.length) {
+                        that.messages.shift();
+                    }
+                }, 1500);
+            }
+        },
     }
 }
 </script>
 
 <style scoped>
-
 </style>

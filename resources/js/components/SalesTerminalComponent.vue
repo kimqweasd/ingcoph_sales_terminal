@@ -141,7 +141,7 @@
                                                 <td>{{ terminalItems.model }}</td>
                                                 <td>{{ terminalItems.name }}</td>
                                                 <td><v-checkbox v-model="terminalItems.free_of_charge" disabled></v-checkbox></td>
-                                                <td class="text-right" style="font-family: monospace;">{{ terminalItems.store_price }}</td>
+                                                <td class="text-right" style="font-family: monospace;">{{ terminalItems.srp }}</td>
                                                 <td class="text-right" style="font-family: monospace;"><input type="number" min="1" v-model="terminalItems.quantity" style="outline: none;" class="text-right" disabled /></td>
                                                 <td class="text-right" style="font-family: monospace;">{{ terminalItems.amount }}</td>
                                             </tr>
@@ -339,7 +339,7 @@ export default {
     mounted() {
         let that = this;
 
-        //this.getItemSeletion();
+        this.getItemSeletion();
         //this.getCustomerSelection();
 
         setTimeout(() => {
@@ -377,8 +377,7 @@ export default {
                             value: 'model',
                         },
                         { text: 'NAME', value: 'name' },
-                        { text: 'DESCRIPTION', value: 'description' },
-                        { text: 'STORE PRICE', value: 'store_price' },
+                        { text: 'STORE PRICE', value: 'srp' },
                         { text: 'QUANTITY', value: 'quantity' }
                     ],
                 },
@@ -469,7 +468,7 @@ export default {
                 result.push(Object.assign({}, {
                     ...selectedItem,
                     quantity : that.terminal.settings.quantity,
-                    amount: parseFloat(selectedItem.store_price.replace(',','')) * that.terminal.settings.quantity
+                    amount: parseFloat(selectedItem.srp.replace(',','')) * that.terminal.settings.quantity
                 }));
 
                 return result;
@@ -502,7 +501,7 @@ export default {
                 let scannedItem = Object.assign({}, {
                     ...scan,
                     quantity : that.terminal.settings.quantity,
-                    amount: parseFloat(scan.store_price.replace(',','')) * that.terminal.settings.quantity
+                    amount: parseFloat(scan.srp.replace(',','')) * that.terminal.settings.quantity
                 });
 
                 that.terminal.items = that.terminal.items.concat(scannedItem);

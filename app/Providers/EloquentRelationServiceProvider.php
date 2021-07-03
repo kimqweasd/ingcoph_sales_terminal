@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Item;
 use App\Models\Store;
 use App\Models\User;
 use Illuminate\Support\ServiceProvider;
@@ -29,7 +30,7 @@ class EloquentRelationServiceProvider extends ServiceProvider
         Relation::morphMap([
             'user' => User::class,
             'store' => Store::class,
-            //'items'
+            'items' => Item::class
             //'promos'
         ]);
     }
