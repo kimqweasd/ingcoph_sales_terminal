@@ -64,7 +64,12 @@
                                             :disabled="masterDataModule.disabled"
                                             tile small color="primary"><v-icon>mdi mdi-download</v-icon>&nbsp;Sync</v-btn>
                                         <span>
-                                            <span class="ml-2 text-md font-weight-bold" v-text="`MASTER DATA : ${masterDataModule.count.saved} / ${masterDataModule.count.source}`"></span>
+                                            <!--<span class="ml-2 text-md font-weight-bold" v-text="`MASTER DATA : ${masterDataModule.count.saved} / ${masterDataModule.count.source}`"></span>-->
+                                            <span class="ml-2 text-md font-weight-bold" v-text="`MASTER DATA : `"></span>
+
+                                            <span class="text-md font-weight-bold"><animated-number :value="masterDataModule.count.saved" :formatValue="formatToNoneDecimal" :duration="700"></animated-number></span>
+                                            <span class="text-md font-weight-bold" v-text="` / `"></span>
+                                            <span class="text-md font-weight-bold"><animated-number :value="masterDataModule.count.source" :formatValue="formatToNoneDecimal" :duration="700"></animated-number></span>
                                         </span>
                                     </v-row>
                                 </v-col>
@@ -140,8 +145,14 @@
 </template>
 
 <script>
+import AnimatedNumber from "animated-number-vue";
+
 export default {
     name: "Utility",
+
+    components: {
+        AnimatedNumber
+    },
 
     data() {
         return {
@@ -183,7 +194,7 @@ export default {
             },
             errors: [],
             messages: [],
-            paginationDistribution: 20
+            paginationDistribution: 25
         }
     },
 
@@ -219,6 +230,15 @@ export default {
                 list: {
                     title: 'Items',
                     subTitle: 'Sync Store Items'
+                },
+                template: (item) => {
+                    return Object.assign({},{
+                        id: item.id,
+                        model: item.item.model,
+                        name: item.item.name,
+                        quantity: item.quantity,
+                        srp: item.store_price
+                    });
                 },
                 independent: false,
                 disabled: false,
@@ -282,6 +302,10 @@ export default {
     },
 
     methods: {
+        formatToNoneDecimal(value){
+            return `${Number(value).toFixed(0)}`;
+        },
+
         async syncAllMasterData(){
             let that = this;
 
@@ -305,6 +329,10 @@ export default {
                 return false;
             }
 
+            if (pagination.page === 1) {
+                that.masterDataModules[index].count.saved = 0;
+            }
+
             that.getFromApiService(module, serviceUrl, Object.assign({},{
                 store_id : pagination.store_id,
                 page: pagination.page,
@@ -317,23 +345,18 @@ export default {
                 console.log(`Syncing ${module} page ${pagination.page}`);
 
                 await new Promise((resolve, reject) => {
-                    // setTimeout(()=>{
-                    //     resolve();
-                    // },500);
+                    let moduleTemplate = (needle) => {
+                        return that.masterDataModules[index].template(needle);
+                    }
 
-                    let data = response.data.reduce((collection, needle)=>{
-                        collection.push(Object.assign({},{
-                            id: needle.id,
-                            model: needle.item.model,
-                            name: needle.item.name,
-                            quantity: needle.quantity,
-                            srp: needle.store_price
-                        }));
-
-                        return collection;
+                    let data = response.data.reduce((haystack, needle)=>{
+                        haystack.push(moduleTemplate(needle));
+                        //Another way for module templating
+                        //haystack.push(that.masterDataModules[index].template(needle));
+                        return haystack;
                     },[]);
 
-                    that.syncPaginated(module, {data: data, page: pagination.page}).then((response) => {
+                    that.syncPaginatedModule(module, {data: data, page: pagination.page}).then((response) => {
                         that.masterDataModules[index].count.saved = response.data.data.count;
                         console.log(`Synced ${module} page ${pagination.page}`);
                         resolve();
@@ -424,7 +447,7 @@ export default {
             });
         },
 
-        syncPaginated(module, payload){
+        syncPaginatedModule(module, payload){
             return new Promise((resolve, reject) => {
                 window.salesTerminalAxios.post('sync', {
                     module: module,
