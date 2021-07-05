@@ -23,9 +23,9 @@ export default {
             }).then((response) => {
                 that.messages.push(`[${that.log++}] Refreshing access token...`);
 
-                auth.api = app;
-                auth.access_token = response.data.access_token;
-                auth.refresh_token = response.data.refresh_token;
+                window['auth'].api = app;
+                window['auth'].access_token = response.data.access_token;
+                window['auth'].refresh_token = response.data.refresh_token;
 
                 window[app].defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
 
