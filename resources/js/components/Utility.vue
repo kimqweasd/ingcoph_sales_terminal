@@ -188,7 +188,6 @@ export default {
             },
             errors: [],
             messages: [],
-            paginationDistribution: 25,
             lastSyncActionIsSingle: true
         }
     },
@@ -220,6 +219,7 @@ export default {
             {
                 slug: 'items',
                 paginated: true,
+                paginateBy: 25,
                 serviceUrl: that.apiInterface[auth.api].items(),
                 processing: false,
                 list: {
@@ -245,33 +245,81 @@ export default {
             {
                 slug: 'promos',
                 paginated: true,
-                serviceUrl: null,
+                paginateBy: 1,
+                serviceUrl: that.apiInterface[auth.api].promos(),
                 processing: false,
                 list: {
                     title: 'Promos',
                     subTitle: 'Sync Store Promos'
                 },
+                template: (promo) => {
+                    return Object.assign({},{
+                        'promo' : {
+                            'id' : promo.id,
+                            'name' : promo.name,
+                            'type' : promo.type,
+                            'spend' : promo.spend,
+                            'discount_type' : promo.discount_type,
+                            'discount_amount' : promo.discount_amount,
+                            'all_items' : Boolean(promo.all_items),
+                            'start_date' : Boolean(promo.all_items) ? Moment(promo.start_date).startOf('day').format(that.system.date.format) : null,
+                            'end_date' : Boolean(promo.all_items) ? Moment(promo.end_date).endOf('day').format(that.system.date.format) : null,
+                            'created_at' : Moment(promo.created_at).format(that.system.date.format),
+                            'updated_at' : Moment(promo.updated_at).format(that.system.date.format),
+                        },
+                        'details': _.isEmpty(promo.promo_details) ? [] : promo.promo_details.reduce((haystack, needle)=>{
+                            haystack.push({
+                                'id' : needle.id,
+                                'promo_id' : needle.promo_id,
+                                'item_id' : needle.item_inventory_id,
+                                'type' : needle.type,
+                                'quantity' : needle.quantity,
+                                'free_of_charge' : Boolean(needle.free_of_charge),
+                                'created_at' : Moment(needle.created_at).format(that.system.date.format),
+                                'updated_at' : Moment(needle.updated_at).format(that.system.date.format),
+                            });
+                            return haystack;
+                        },[]),
+                        'pivot': _.isEmpty(promo.item_inventories) ? [] : promo.item_inventories.reduce((haystack, needle)=>{
+                            haystack.push({
+                                'item_id': needle.pivot.item_inventory_id,
+                                'promo_id': needle.pivot.promo_id,
+                                'start_date': Moment(needle.pivot.start_date).startOf('day').format(that.system.date.format),
+                                'end_date': Moment(needle.pivot.start_date).endOf('day').format(that.system.date.format),
+                            });
+                            return haystack;
+                        },[])
+                    });
+                },
                 independent: false,
-                disabled: true,
+                disabled: false,
                 count: {
                     source: 0,
-                    saved: 0
+                    saved: shared.promos.count
                 }
             },
             {
                 slug: 'payment_methods',
                 paginated: true,
-                serviceUrl: null,
+                paginateBy: 2,
+                serviceUrl: that.apiInterface[auth.api].paymentMethods(),
                 processing: false,
                 list: {
                     title: 'Payment Methods',
                     subTitle: 'Sync Store Payment Methods'
                 },
+                template: (item) => {
+                    return Object.assign({},{
+                        id: item.id,
+                        name: item.name,
+                        remarks: item.remarks,
+                    });
+                },
                 independent: false,
-                disabled: true,
+                disabled: false,
                 count: {
                     source: 0,
-                    saved: 0
+                    saved: shared.payment_methods.count
                 }
             }
         ];
@@ -310,10 +358,10 @@ export default {
                 return false;
             }
 
-            that.masterDataModules.filter(module => (module.independent === false && module.paginated && !_.isEmpty(module.serviceUrl))).forEach(module => {
+            that.masterDataModules.filter(module => (module.disabled === false && module.independent === false && module.paginated && !_.isEmpty(module.serviceUrl))).forEach(module => {
                 let masterDataModulesIndex = that.masterDataModules.indexOf(module);
                 that.toggleLoading(masterDataModulesIndex, true);
-                that.iteratePagination(module.slug, module.serviceUrl, masterDataModulesIndex, {store_id :that.store.id, page: 1, perPage: that.paginationDistribution});
+                that.iteratePagination(module.slug, module.serviceUrl, masterDataModulesIndex, {store_id :that.store.id, page: 1, perPage: module.paginateBy});
             });
         },
 
@@ -334,7 +382,7 @@ export default {
                 page: pagination.page,
                 per_page: pagination.perPage
             })).then(async (response) => {
-                console.log([`${module} page ${pagination.page}`, response]);
+                //console.log([`${module} page ${pagination.page}`, response]);
 
                 if (pagination.page === 1) {
                     that.messages.push(`[${that.log++}] Downloading ${module}...`);
@@ -342,7 +390,7 @@ export default {
 
                 that.masterDataModules[index].count.source = response.total;
 
-                console.log(`Syncing ${module} page ${pagination.page}`);
+                //console.log(`Syncing ${module} page ${pagination.page}`);
 
                 await new Promise((resolve, reject) => {
                     let moduleTemplate = (needle) => {
@@ -358,14 +406,12 @@ export default {
 
                     that.syncPaginatedModule(module, {data: data, page: pagination.page}).then((response) => {
                         that.masterDataModules[index].count.saved = response.data.data.count;
-                        console.log(`Synced ${module} page ${pagination.page}`);
+                        //console.log(`Synced ${module} page ${pagination.page}`);
                         resolve();
                     }).catch((error) => {
                         that.catchError(error, ['Terminal service failed...'], index);
                     });
                 });
-
-                console.log(`synced ${module} page ${pagination.page}`);
 
                 if (pagination.page !== response.last_page) {
                     await that.iteratePagination(module, serviceUrl, index, Object.assign({}, {
@@ -374,7 +420,7 @@ export default {
                         perPage: pagination.perPage
                     }))
                 } else {
-                    console.log(`finished iterating ${module}`);
+                    console.log(`Finished iterating ${module}`);
                     that.toggleLoading(index, false);
                     that.errors = [];
                 }
@@ -440,7 +486,7 @@ export default {
                 }
             } else {
                 console.log(arguments);
-                await that.iteratePagination(module, serviceUrl, index, {store_id :that.store.id, page: 1, perPage: that.paginationDistribution});
+                await that.iteratePagination(module, serviceUrl, index, {store_id :that.store.id, page: 1, perPage: that.masterDataModules[index].paginateBy});
             }
         },
 

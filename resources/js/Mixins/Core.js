@@ -9,7 +9,12 @@ export default {
     data() {
         return {
             log: 0,
-            apiInterface: api
+            apiInterface: api,
+            system: {
+                date : {
+                    format : 'YYYY-MM-DD hh:mm:ss'
+                }
+            }
         }
     },
 

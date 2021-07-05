@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Models\Item;
+use App\Models\PaymentMethod;
+use App\Models\Promo;
 use App\Models\Store;
 use App\Models\User;
 use App\Traits\SessionHandler;
@@ -44,8 +46,13 @@ class ViewServiceProvider extends ServiceProvider
                     'items' => [
                         'count' => Item::count()
                     ],
-                    'salesTerminal' => [
-
+                    'payment_methods' => [
+                        'count' => PaymentMethod::count()
+                    ],
+                    'promos' => [
+                        'count' => Promo::count()
+                    ],
+                    'sales_terminal' => [
                         //Suggest Syncing
                         'synced' => false
                     ]

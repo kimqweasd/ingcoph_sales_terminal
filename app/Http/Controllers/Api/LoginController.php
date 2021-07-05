@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Item;
+use App\Models\PaymentMethod;
+use App\Models\Promo;
 use App\Providers\RouteServiceProvider;
 use App\Traits\SessionHandler;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Response;
 use App\Models\Store;
@@ -45,6 +48,7 @@ class LoginController extends Controller
         User::query()->truncate();
         Store::query()->truncate();
         Item::query()->truncate();
+        PaymentMethod::query()->truncate();
 
         \Log::debug(["Logout Session" => collect(Session::all())->only(['api', 'access_token'])->toArray()]);
 

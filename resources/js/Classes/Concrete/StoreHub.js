@@ -39,4 +39,12 @@ export default class StoreHub extends Application{
     items() {
         return `${this.libraryAddress}/items`;
     }
+
+    promos() {
+        return `${this.libraryAddress}/promos`;
+    }
+
+    paymentMethods() {
+        return `${this.libraryAddress}/payment_methods`;
+    }
 }
