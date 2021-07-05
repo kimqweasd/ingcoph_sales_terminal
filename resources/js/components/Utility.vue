@@ -374,7 +374,7 @@ export default {
 
             if (pagination.page === 1) {
                 that.masterDataModules[index].count.saved = 0;
-                that.messages.push(`[${that.log++}] Requesting ${module} from store hub server`);
+                that.messages.push(`[${that.log++}] Requesting ${module.replace('_', ' ')} from store hub server...`);
             }
 
             that.getFromApiService(module, serviceUrl, Object.assign({},{
@@ -385,7 +385,7 @@ export default {
                 //console.log([`${module} page ${pagination.page}`, response]);
 
                 if (pagination.page === 1) {
-                    that.messages.push(`[${that.log++}] Downloading ${module}...`);
+                    that.messages.push(`[${that.log++}] Downloading ${module.replace('_', ' ')}...`);
                 }
 
                 that.masterDataModules[index].count.source = response.total;
@@ -463,8 +463,8 @@ export default {
                 });
 
                 if (!that.errors.length) {
-                    that.messages.push(`[${that.log++}] Request ${module} received`);
-                    console.log(`Request ${module} received`);
+                    that.messages.push(`[${that.log++}] Request ${module.replace('_', ' ')} received`);
+                    console.log(`Request ${module.replace('_', ' ')} received`);
                 }
 
                 if (data) {
@@ -494,8 +494,8 @@ export default {
             let that = this;
 
             if (_.isEmpty(params)) {
-                that.messages.push(`[${that.log++}] Requesting ${module} from store hub server`);
-                console.log(`Requesting ${module} from store hub server`);
+                that.messages.push(`[${that.log++}] Requesting ${module.replace('_', ' ')} from store hub server`);
+                console.log(`Requesting ${module.replace('_', ' ')} from store hub server`);
             }
 
             return new Promise((resolve, reject) => {
@@ -528,8 +528,8 @@ export default {
         async syncModule(module, data, index){
             let that = this;
 
-            that.messages.push(`[${that.log++}] Syncing ${module}`);
-            await console.log(`Syncing ${module}.`);
+            that.messages.push(`[${that.log++}] Syncing ${module.replace('_', ' ')}...`);
+            await console.log(`Syncing ${module.replace('_', ' ')}...`);
 
             await window.salesTerminalAxios.post('sync', {
                 module: module,
@@ -538,8 +538,8 @@ export default {
 
                 that.toggleLoading(index, false);
 
-                that.messages.push(`[${that.log++}] Synced ${module}`);
-                console.log(`Synced ${module}`);
+                that.messages.push(`[${that.log++}] Synced ${module.replace('_', ' ')}`);
+                console.log(`Synced ${module.replace('_', ' ')}`);
 
                 that.sync.dialog = false;
                 that.errors = [];
