@@ -96,7 +96,8 @@ export default {
 
             window.salesTerminalAxios.post('login', {
                 api: data.api,
-                access_token: data.access_token
+                access_token: data.access_token,
+                refresh_token: data.refresh_token
             }).then((response) => {
                 that.messages = ['Please wait...'];
                 setTimeout(()=>{

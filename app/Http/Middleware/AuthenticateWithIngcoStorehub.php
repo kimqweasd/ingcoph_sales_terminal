@@ -20,7 +20,7 @@ class AuthenticateWithIngcoStorehub
      */
     public function handle(Request $request, Closure $next)
     {
-        \Log::debug(["Ingco Storehub Session" => collect(Session::all())->only(['api', 'access_token'])->toArray()]);
+        \Log::debug(["Ingco Storehub Session" => collect(Session::all())->only(['api', 'access_token', 'refresh_token'])->toArray()]);
 
         return $this->has('access_token')
             ? $next($request)

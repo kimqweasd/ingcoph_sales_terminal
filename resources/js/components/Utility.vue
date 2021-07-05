@@ -145,14 +145,8 @@
 </template>
 
 <script>
-import AnimatedNumber from "animated-number-vue";
-
 export default {
     name: "Utility",
-
-    components: {
-        AnimatedNumber
-    },
 
     data() {
         return {
@@ -194,7 +188,8 @@ export default {
             },
             errors: [],
             messages: [],
-            paginationDistribution: 25
+            paginationDistribution: 25,
+            lastSyncActionIsSingle: true
         }
     },
 
@@ -309,6 +304,8 @@ export default {
         async syncAllMasterData(){
             let that = this;
 
+            that.lastSyncActionIsSingle = false;
+
             if (_.isNull(that.store.id)) {
                 return false;
             }
@@ -323,14 +320,13 @@ export default {
         async iteratePagination(module, serviceUrl, index, pagination) {
             let that = this;
 
-            that.errors = [];
-
             if(_.isNull(serviceUrl)){
                 return false;
             }
 
             if (pagination.page === 1) {
                 that.masterDataModules[index].count.saved = 0;
+                that.messages.push(`[${that.log++}] Requesting ${module} from store hub server`);
             }
 
             that.getFromApiService(module, serviceUrl, Object.assign({},{
@@ -339,6 +335,10 @@ export default {
                 per_page: pagination.perPage
             })).then(async (response) => {
                 console.log([`${module} page ${pagination.page}`, response]);
+
+                if (pagination.page === 1) {
+                    that.messages.push(`[${that.log++}] Downloading ${module}...`);
+                }
 
                 that.masterDataModules[index].count.source = response.total;
 
@@ -361,7 +361,7 @@ export default {
                         console.log(`Synced ${module} page ${pagination.page}`);
                         resolve();
                     }).catch((error) => {
-                        that.catchError(error, ['Authentication failed : token expired', 'Please re-login your session'], index);
+                        that.catchError(error, ['Terminal service failed...'], index);
                     });
                 });
 
@@ -376,14 +376,26 @@ export default {
                 } else {
                     console.log(`finished iterating ${module}`);
                     that.toggleLoading(index, false);
+                    that.errors = [];
                 }
             }).catch((error) => {
-                that.catchError(error, ['Authentication failed : token expired', 'Please re-login your session'], index);
+                that.catchError(
+                    error,
+                    ['Authentication failed : token expired', 'Preparing Automatic Token Refresher', 'Please wait...'],
+                    index,
+                    ()=>{
+                        return (that.lastSyncActionIsSingle)
+                            ? that.initializeSync(module, serviceUrl, true, index)
+                            : that.syncAllMasterData();
+                    }
+                );
             });
         },
 
         async initializeSync(module, serviceUrl, paginated, index = null){
             let that = this;
+
+            that.lastSyncActionIsSingle = true;
 
             if (_.isNull(serviceUrl)) return false;
 
@@ -396,11 +408,16 @@ export default {
                 await that.getFromApiService(module, serviceUrl, paginated, index).then((response) => {
                     data = response;
                 }).catch((error) => {
-                    that.catchError(error, ['Authentication failed : token expired', 'Please re-login your session'], index);
+                    that.catchError(
+                        error,
+                        ['Authentication failed : token expired', 'Preparing Automatic Token Refresher', 'Please wait...'],
+                        index,
+                        ()=>{return that.initializeSync(module, serviceUrl, paginated, index)}
+                    );
                 });
 
                 if (!that.errors.length) {
-                    that.messages.push(`Request ${module} received`);
+                    that.messages.push(`[${that.log++}] Request ${module} received`);
                     console.log(`Request ${module} received`);
                 }
 
@@ -422,6 +439,7 @@ export default {
                     await that.syncModule(module, data, index);
                 }
             } else {
+                console.log(arguments);
                 await that.iteratePagination(module, serviceUrl, index, {store_id :that.store.id, page: 1, perPage: that.paginationDistribution});
             }
         },
@@ -430,7 +448,7 @@ export default {
             let that = this;
 
             if (_.isEmpty(params)) {
-                that.messages.push(`Requesting ${module} from store hub server`);
+                that.messages.push(`[${that.log++}] Requesting ${module} from store hub server`);
                 console.log(`Requesting ${module} from store hub server`);
             }
 
@@ -464,7 +482,7 @@ export default {
         async syncModule(module, data, index){
             let that = this;
 
-            that.messages.push(`Syncing ${module}`);
+            that.messages.push(`[${that.log++}] Syncing ${module}`);
             await console.log(`Syncing ${module}.`);
 
             await window.salesTerminalAxios.post('sync', {
@@ -474,10 +492,11 @@ export default {
 
                 that.toggleLoading(index, false);
 
-                that.messages.push(`Synced ${module}`);
+                that.messages.push(`[${that.log++}] Synced ${module}`);
                 console.log(`Synced ${module}`);
 
                 that.sync.dialog = false;
+                that.errors = [];
 
             }).catch((error) => {
                 that.catchError(error, ['Terminal service failed...'], index);
@@ -506,6 +525,7 @@ export default {
             await new Promise(resolve => {
                 that.sync.dialog = true;
                 that.syncAllMasterData();
+                that.errors = [];
                 resolve();
             });
         },
@@ -531,7 +551,7 @@ export default {
             window.location = "logout";
         },
 
-        catchError(error, messages, loadingIndex){
+        catchError(error, messages, loadingIndex, callback = null){
             let that = this;
 
             that.errors = messages;
@@ -540,6 +560,8 @@ export default {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx
                 console.log(error.response.data.message);
+                that.messages.push(`[${that.log++}] Initializing access token refresh...`);
+                that.refreshToken({refresh_token : auth.refresh_token}, auth.api, callback);
             } else if (error.request) {
                 // The request was made but no response was received
                 that.errors = ['Failed to connect to store hub server...'];
@@ -565,7 +587,7 @@ export default {
                     if (that.messages.length) {
                         that.messages.shift();
                     }
-                }, 1500);
+                }, 10000);
             }
         },
     }

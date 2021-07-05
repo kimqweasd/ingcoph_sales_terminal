@@ -19,13 +19,14 @@ class LoginController extends Controller
     {
         if (request()->wantsJson()) {
 
-            User::query()->truncate();
-            Store::query()->truncate();
+            //User::query()->truncate();
+            //Store::query()->truncate();
 
             $this->forgetAndPut('api', request()->input('api'));
             $this->forgetAndPut('access_token', request()->input('access_token'));
+            $this->forgetAndPut('refresh_token', request()->input('refresh_token'));
 
-            \Log::debug(["Session Authentication" => collect(Session::all())->only(['api', 'access_token'])->toArray()]);
+            \Log::debug(["Session Authentication" => collect(Session::all())->only(['api', 'access_token', 'refresh_token'])->toArray()]);
 
             return response()->json([
                 'message' => Response::$statusTexts[Response::HTTP_OK]
