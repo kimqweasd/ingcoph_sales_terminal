@@ -78,7 +78,7 @@ export default {
                 if (error.response) {
                     that.errors = ['Login failed', 'Please enter valid credentials'];
                 } else if (error.request) {
-                    that.errors = ['Failed to connect to store hub server...'];
+                    that.errors = [`Failed to connect to ${that.apiInterface[app].namePresenter} server...`];
                 } else {
                     that.errors = ['Something went wrong... Please contact your administrator...'];
                     console.log('Something went wrong...', error.message);

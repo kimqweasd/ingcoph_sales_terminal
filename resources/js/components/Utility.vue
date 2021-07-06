@@ -219,7 +219,7 @@ export default {
             {
                 slug: 'items',
                 paginated: true,
-                paginateBy: 25,
+                paginateBy: 250,
                 serviceUrl: that.apiInterface[auth.api].items(),
                 processing: false,
                 list: {
@@ -301,7 +301,7 @@ export default {
             {
                 slug: 'payment_methods',
                 paginated: true,
-                paginateBy: 2,
+                paginateBy: 1,
                 serviceUrl: that.apiInterface[auth.api].paymentMethods(),
                 processing: false,
                 list: {
@@ -321,12 +321,43 @@ export default {
                     source: 0,
                     saved: shared.payment_methods.count
                 }
-            }
+            },
+            {
+                slug: 'sales',
+                paginated: false,
+                serviceUrl: null,
+                processing: false,
+                list: {
+                    title: 'Sales',
+                    subTitle: 'Sync Sales for Return Reference or Invoice Re-printing'
+                },
+                independent: false,
+                disabled: true,
+                count: {
+                    source: 0,
+                    saved: 0
+                }
+            },
+            {
+                slug: 'settings',
+                paginated: false,
+                serviceUrl: null,
+                processing: false,
+                list: {
+                    title: 'System Settings',
+                    subTitle: 'Sync Generic Codes and Vat Settings'
+                },
+                independent: false,
+                disabled: true,
+                count: {
+                    source: 0,
+                    saved: 0
+                }
+            },
         ];
 
         if (_.isEmpty(shared['user'])) {
             await that.initializeSync('user', that.apiInterface[auth.api].account(), false);
-            await console.log("Resolved User.");
         } else {
             that.user.name = shared.user.name;
             that.user.loaded = true;
@@ -335,7 +366,6 @@ export default {
 
         if (_.isEmpty(shared['store'])) {
             await that.initializeSync('store', that.apiInterface[auth.api].storeInfo(), false, null);
-            await console.log("Resolved store.");
         } else {
             that.store.id = shared.store.id;
             that.store.name = shared.store.name;
@@ -374,7 +404,7 @@ export default {
 
             if (pagination.page === 1) {
                 that.masterDataModules[index].count.saved = 0;
-                that.messages.push(`[${that.log++}] Requesting ${module.replace('_', ' ')} from store hub server...`);
+                that.messages.push(`[${that.log++}] Requesting ${module.replace('_', ' ')} from ${that.apiInterface[auth.api].namePresenter} server...`);
             }
 
             that.getFromApiService(module, serviceUrl, Object.assign({},{
@@ -382,15 +412,12 @@ export default {
                 page: pagination.page,
                 per_page: pagination.perPage
             })).then(async (response) => {
-                //console.log([`${module} page ${pagination.page}`, response]);
 
                 if (pagination.page === 1) {
                     that.messages.push(`[${that.log++}] Downloading ${module.replace('_', ' ')}...`);
                 }
 
                 that.masterDataModules[index].count.source = response.total;
-
-                //console.log(`Syncing ${module} page ${pagination.page}`);
 
                 await new Promise((resolve, reject) => {
                     let moduleTemplate = (needle) => {
@@ -406,7 +433,6 @@ export default {
 
                     that.syncPaginatedModule(module, {data: data, page: pagination.page}).then((response) => {
                         that.masterDataModules[index].count.saved = response.data.data.count;
-                        //console.log(`Synced ${module} page ${pagination.page}`);
                         resolve();
                     }).catch((error) => {
                         that.catchError(error, ['Terminal service failed...'], index);
@@ -420,7 +446,7 @@ export default {
                         perPage: pagination.perPage
                     }))
                 } else {
-                    console.log(`Finished iterating ${module}`);
+                    //console.log(`Finished iterating ${module}`);
                     that.toggleLoading(index, false);
                     that.errors = [];
                 }
@@ -464,7 +490,7 @@ export default {
 
                 if (!that.errors.length) {
                     that.messages.push(`[${that.log++}] Request ${module.replace('_', ' ')} received`);
-                    console.log(`Request ${module.replace('_', ' ')} received`);
+                    //console.log(`Request ${module.replace('_', ' ')} received`);
                 }
 
                 if (data) {
@@ -485,7 +511,6 @@ export default {
                     await that.syncModule(module, data, index);
                 }
             } else {
-                console.log(arguments);
                 await that.iteratePagination(module, serviceUrl, index, {store_id :that.store.id, page: 1, perPage: that.masterDataModules[index].paginateBy});
             }
         },
@@ -494,8 +519,8 @@ export default {
             let that = this;
 
             if (_.isEmpty(params)) {
-                that.messages.push(`[${that.log++}] Requesting ${module.replace('_', ' ')} from store hub server`);
-                console.log(`Requesting ${module.replace('_', ' ')} from store hub server`);
+                that.messages.push(`[${that.log++}] Requesting ${module.replace('_', ' ')} from ${that.apiInterface[auth.api].namePresenter} server`);
+                //console.log(`Requesting ${module.replace('_', ' ')} from ${that.apiInterface[auth.api].namePresenter} server`);
             }
 
             return new Promise((resolve, reject) => {
@@ -529,7 +554,6 @@ export default {
             let that = this;
 
             that.messages.push(`[${that.log++}] Syncing ${module.replace('_', ' ')}...`);
-            await console.log(`Syncing ${module.replace('_', ' ')}...`);
 
             await window.salesTerminalAxios.post('sync', {
                 module: module,
@@ -539,7 +563,6 @@ export default {
                 that.toggleLoading(index, false);
 
                 that.messages.push(`[${that.log++}] Synced ${module.replace('_', ' ')}`);
-                console.log(`Synced ${module.replace('_', ' ')}`);
 
                 that.sync.dialog = false;
                 that.errors = [];
@@ -565,7 +588,6 @@ export default {
             that.store.name = data.name;
             that.store.address = data.address;
             that.store.loaded = true;
-            await console.log("Resolved Store.");
 
             //Start syncing master data, since store just got finished
             await new Promise(resolve => {
@@ -610,7 +632,7 @@ export default {
                 that.refreshToken({refresh_token : auth.refresh_token}, auth.api, callback);
             } else if (error.request) {
                 // The request was made but no response was received
-                that.errors = ['Failed to connect to store hub server...'];
+                that.errors = [`Failed to connect to ${that.apiInterface[auth.api].namePresenter} server...`];
             } else {
                 that.errors = ['Something went wrong... Please contact your administrator...'];
                 console.log('Something went wrong...', error.message);

@@ -2,14 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\SyncType;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Item extends Model
+class Item extends Base
 {
-    use HasFactory;
-
     /**
      * The attributes that are mass assignable.
      *
@@ -31,5 +28,17 @@ class Item extends Model
             'item_id',
             'promo_id'
         )->withPivot(['start_date', 'end_date']);
+    }
+
+    public function syncSettings(): array
+    {
+        return [
+            'group' => [$this->getMorphMapKey(Item::class)],
+            'type' => SyncType::PAGINATED,
+            'callback' => function($module, $collection) {
+                $module::insert($collection);
+                return ['count' => $module::count()];
+            }
+        ];
     }
 }

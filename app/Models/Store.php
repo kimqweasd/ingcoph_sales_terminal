@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\SyncType;
 
-class Store extends Model
+class Store extends Base
 {
-    use HasFactory;
-
     protected $table = 'store';
 
     /**
@@ -27,4 +24,15 @@ class Store extends Model
         'telephone_number',
         'email',
     ];
+
+    public function syncSettings(): array
+    {
+        return [
+            'group' => [$this->getMorphMapKey(Store::class)],
+            'type' => SyncType::SINGLE,
+            'callback' => function($module, $data) {
+                return $module::create($data);
+            }
+        ];
+    }
 }

@@ -12,6 +12,7 @@ export default class Application extends Api{
         });
 
         this.name = attributes.name || "application";
+        this.namePresenter = attributes.namePresenter || "Application";
         this.state = attributes.state || null;
         this.images = attributes.images || {
             icon : {},

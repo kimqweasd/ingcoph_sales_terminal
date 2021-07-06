@@ -13,6 +13,6 @@ trait MorphMap
 
     protected function getMorphMapValue(string $key)
     {
-        return Relation::morphMap()[$key];
+        return Relation::morphMap()[$key] ?? null;
     }
 }

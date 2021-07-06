@@ -15,7 +15,6 @@ class CreateUsersTable extends Migration
     {
         Schema::create('user', function (Blueprint $table) {
             $table->integer('id');
-            $table->unsignedBigInteger('store_id');
             $table->string('name');
             $table->unsignedTinyInteger('active')->default(1);
             $table->unsignedTinyInteger('locked')->default(0);

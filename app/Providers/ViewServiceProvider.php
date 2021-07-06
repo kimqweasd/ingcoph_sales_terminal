@@ -51,10 +51,6 @@ class ViewServiceProvider extends ServiceProvider
                     ],
                     'promos' => [
                         'count' => Promo::count()
-                    ],
-                    'sales_terminal' => [
-                        //Suggest Syncing
-                        'synced' => false
                     ]
                 ]
             ]);

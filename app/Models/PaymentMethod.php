@@ -2,13 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\SyncType;
 
-class PaymentMethod extends Model
+class PaymentMethod extends Base
 {
-    use HasFactory;
-
     /**
      * The attributes that are mass assignable.
      *
@@ -19,4 +16,16 @@ class PaymentMethod extends Model
         'model',
         'remarks'
     ];
+
+    public function syncSettings(): array
+    {
+        return [
+            'group' => [$this->getMorphMapKey(PaymentMethod::class)],
+            'type' => SyncType::PAGINATED,
+            'callback' => function($module, $collection) {
+                $module::insert($collection);
+                return ['count' => $module::count()];
+            }
+        ];
+    }
 }
