@@ -25,6 +25,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->app->bind(SyncServiceInterface::class, SyncService::class);
+        $this->app->bindIf(SyncServiceInterface::class, SyncService::class);
     }
 }
